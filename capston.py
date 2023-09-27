@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 import tkinter as tk
 from tkinter import *
 import cv2
@@ -22,7 +16,7 @@ global tot_text
 tot_text = []
 count = 0
 window.geometry('1280x720')
-window.title("Hangul")
+window.title("수어번역기")
 label = tk.Label(window)
 label.place(x=0, y=0)
 
@@ -52,12 +46,12 @@ def process_frame():
     global encText
 
     # 모델 적용
-    model_path = 'eng_sign_lang_cnn_epochs50_27.h5'
+    model_path = 'my_model.h5'
     model = tf.keras.models.load_model(model_path)
     
     # class 지정
-    class_labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N',
-                'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']
+    class_labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+                'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y','Z']
 
     cap = cv2.VideoCapture(0)  # 카메라 인덱스 (일반적으로 0)
 
@@ -66,14 +60,26 @@ def process_frame():
 
         if not ret:
             break
+        
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+        # 마스크 색상 범위를 정의합니다. 살구색의 경우, 다음과 같이 범위를 설정할 수 있습니다.
+        lower_bound = np.array([0, 20, 70])  # 하한값
+        upper_bound = np.array([20, 255, 255])  # 상한값
+
+        # 마스크를 생성합니다.
+        mask = cv2.inRange(hsv, lower_bound, upper_bound)
+
+        # 원본 이미지에 마스크를 적용하여 살구색만 남깁니다.
+        masked_frame = cv2.bitwise_and(frame, frame, mask=mask)
 
         blurred_frame = cv2.GaussianBlur(frame, (5, 5), 0)
 
         def preprocess(image):
-            resized_image = cv2.resize(image, (28, 28))
+            resized_image = cv2.resize(image, (128, 128))
             gray_image = cv2.cvtColor(resized_image, cv2.COLOR_BGR2GRAY)
             normalized_image = gray_image / 255.0
-            reshaped_image = np.reshape(normalized_image, (1, 28, 28, 1))
+            reshaped_image = np.reshape(normalized_image, (1, 128, 128, 1))
             return reshaped_image
 
         processed_frame = preprocess(blurred_frame)
@@ -84,10 +90,10 @@ def process_frame():
         predicted_class_label = class_labels[predicted_class_index]
 
         text = f"Predicted Class: {predicted_class_label}"
-        cv2.putText(frame, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        cv2.putText(masked_frame, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
         print(predicted_class_label)
-        image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+        image = Image.fromarray(cv2.cvtColor(masked_frame, cv2.COLOR_BGR2RGB))
         img = ImageTk.PhotoImage(image)
         
         # video_label을 업데이트하는 함수 호출
@@ -110,10 +116,9 @@ def update_video_label(img):
     
 def signlanguage():
     global predicted_class_label
-    global count
     global tot_text
     global encText
-    count = count + 1
+   
 
     # 프레임 처리를 담당하는 함수를 쓰레드로 실행
     threading.Thread(target=process_frame).start()
@@ -196,8 +201,8 @@ label1 = Label(frame6,text= "수어 번역기", font = ("궁서체",50))
 label2 = Label(frame4,text= "입력된 텍스트", font = ("궁서체",40))
 label3 = Label(frame4,text= "", font = ("궁서체",20)) # 텍스트 출력 라벨
 
-btnToFrame4 = Button(frame6,text="음성 인식",padx=24,pady=10,command=lambda:[openFrame(frame6)])
-btnToFrame6 = Button(frame6,text="수어 번역",padx=24,pady=10,command=lambda:[openFrame(frame4)])
+btnToFrame4 = Button(frame6,text="음성 인식",padx=24,pady=10,command=lambda:[openFrame(frame6)],)
+btnToFrame6 = Button(frame6,text="수어 번역",padx=24,pady=10,command=lambda:[openFrame(frame4)],font = ("궁서체",15))
 
 
 label1.pack(padx=0,pady=0)
@@ -209,4 +214,3 @@ btnToFrame6.pack()
 
     
 window.mainloop()
-
