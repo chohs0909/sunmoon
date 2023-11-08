@@ -50,8 +50,8 @@ def process_frame():
     model = tf.keras.models.load_model(model_path)
     
     # class 지정
-    class_labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
-                'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y','Z']
+    class_labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N',
+                'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y']
 
     cap = cv2.VideoCapture(0)  # 카메라 인덱스 (일반적으로 0)
 
@@ -64,8 +64,8 @@ def process_frame():
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         # 마스크 색상 범위를 정의합니다. 살구색의 경우, 다음과 같이 범위를 설정할 수 있습니다.
-        lower_bound = np.array([0, 20, 70])  # 하한값
-        upper_bound = np.array([20, 255, 255])  # 상한값
+        lower_bound = np.array([0, 20, 50])  # 하한값
+        upper_bound = np.array([50, 255, 255])  # 상한값
 
         # 마스크를 생성합니다.
         mask = cv2.inRange(hsv, lower_bound, upper_bound)
@@ -90,10 +90,10 @@ def process_frame():
         predicted_class_label = class_labels[predicted_class_index]
 
         text = f"Predicted Class: {predicted_class_label}"
-        cv2.putText(masked_frame, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        cv2.putText(frame, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
         print(predicted_class_label)
-        image = Image.fromarray(cv2.cvtColor(masked_frame, cv2.COLOR_BGR2RGB))
+        image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
         img = ImageTk.PhotoImage(image)
         
         # video_label을 업데이트하는 함수 호출
@@ -118,7 +118,6 @@ def signlanguage():
     global predicted_class_label
     global tot_text
     global encText
-   
 
     # 프레임 처리를 담당하는 함수를 쓰레드로 실행
     threading.Thread(target=process_frame).start()
@@ -162,7 +161,7 @@ def translation():
     else:
         print("Error Code:" + rescode)
 
-   
+
     
 def Reset():
     global tot_text
